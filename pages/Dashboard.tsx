@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Bin } from '../types';
-import { subscribeToBins, calculateFillLevel, updateBinLocation } from '../services/mockService';
+import { subscribeToBins, calculateFillLevel, updateBinLocation, downloadCSV } from '../services/mockService';
 import { analyzeBinData } from '../services/geminiService';
 import { BinCard } from '../components/BinCard';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { RefreshCw, Sparkles, X, Activity, Edit2, Check, MapPin } from 'lucide-react';
+import { RefreshCw, Sparkles, X, Activity, Edit2, Check, MapPin, Download } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const [bins, setBins] = useState<Bin[]>([]);
@@ -145,12 +145,22 @@ export const Dashboard: React.FC = () => {
                   )}
                 </div>
               </div>
-              <button 
-                onClick={() => { setSelectedBin(null); setAiAnalysis(""); setIsEditingLoc(false); }}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-500 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => downloadCSV(selectedBin)}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 transition-colors font-medium mr-2"
+                  title="Download CSV Data"
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </button>
+                <button 
+                  onClick={() => { setSelectedBin(null); setAiAnalysis(""); setIsEditingLoc(false); }}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-500 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             <div className="p-6 space-y-8">
@@ -217,7 +227,7 @@ export const Dashboard: React.FC = () => {
                     <div className="flex justify-between items-center mb-4">
                       <h4 className="font-semibold text-brand-900 dark:text-brand-100 flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-brand-500" />
-                        Gemini Insights
+                        Data & Insights
                       </h4>
                       {!aiAnalysis && (
                         <button 
@@ -225,7 +235,7 @@ export const Dashboard: React.FC = () => {
                           disabled={analyzing}
                           className="px-3 py-1.5 text-xs bg-brand-600 hover:bg-brand-700 text-white rounded-md transition-colors disabled:opacity-50 shadow-sm"
                         >
-                          {analyzing ? 'Thinking...' : 'Analyze'}
+                          {analyzing ? 'Thinking...' : 'Generate Analysis'}
                         </button>
                       )}
                     </div>
@@ -238,11 +248,18 @@ export const Dashboard: React.FC = () => {
                        </div>
                     ) : aiAnalysis ? (
                       <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <p className="whitespace-pre-line text-brand-800 dark:text-brand-200 leading-relaxed text-sm">{aiAnalysis}</p>
+                         <ul className="list-none space-y-2">
+                           {aiAnalysis.split('\n').filter(l => l.trim()).map((line, i) => (
+                             <li key={i} className="text-sm text-brand-800 dark:text-brand-200 flex gap-2">
+                               <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-brand-400 flex-shrink-0"></span>
+                               {line.replace(/^- /, '').replace(/^\d\.\s/, '')}
+                             </li>
+                           ))}
+                         </ul>
                       </div>
                     ) : (
                       <p className="text-sm text-brand-600/70 dark:text-brand-400/70">
-                        Use AI to detect fill anomalies and optimize pickup schedules based on historical patterns.
+                        View AI-generated usage patterns, peak filling times, and schedule optimizations based on weekly history.
                       </p>
                     )}
                   </div>

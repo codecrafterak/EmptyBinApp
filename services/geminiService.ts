@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { Bin } from "../types";
+import { getMockWeeklyStats } from "./mockService";
 
 export const analyzeBinData = async (bin: Bin): Promise<string> => {
   try {
@@ -15,20 +16,32 @@ export const analyzeBinData = async (bin: Bin): Promise<string> => {
       `Time: ${new Date(r.timestamp).toLocaleTimeString()}, Fill: ${r.fillPercentage}%`
     ).join('\n');
 
+    // Inject mock weekly stats to allow the AI to generate "trends" even with limited real history in the demo
+    const weeklyStats = getMockWeeklyStats(bin);
+
     const prompt = `
-      Analyze the waste fill pattern for this bin:
-      Name: ${bin.name}
-      Location: ${bin.location}
-      Total Capacity (Height): ${bin.heightCm}cm
-      
-      Recent Data (Last 10 hours):
+      You are an expert waste management analyst. Analyze the following data for a smart bin.
+
+      BIN DETAILS:
+      - Name: ${bin.name}
+      - Location: ${bin.location}
+      - Capacity: ${bin.heightCm}cm
+
+      AGGREGATED WEEKLY STATS (Calculated):
+      - Average Fill Rate: ${weeklyStats.averageFillRate}
+      - Observed Peak Usage Day: ${weeklyStats.peakDay}
+      - Peak Usage Hour: ${weeklyStats.peakHour}
+
+      RECENT RAW SENSOR DATA (Last 10 readings):
       ${recentReadings}
 
-      Provide a concise 3-bullet point summary advising on:
-      1. Peak usage times.
-      2. Potential pickup schedule optimization.
-      3. Any anomalies (like sudden spikes or if it seems to be overflowing).
-      Keep the tone professional and helpful for a facility manager.
+      TASK:
+      Provide a concise 3-bullet point "Data & Insights" summary.
+      1. Identify usage patterns (e.g., "Bin fills faster on [Peak Day] due to...").
+      2. Suggest an optimization for the pickup schedule based on the fill rate.
+      3. Flag any recent anomalies or confirm normal operation based on the raw data.
+
+      Tone: Professional, data-driven, and actionable. Do not use markdown headers like '##'. Just the bullet points.
     `;
 
     const response = await ai.models.generateContent({

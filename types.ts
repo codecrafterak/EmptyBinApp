@@ -15,8 +15,20 @@ export interface Bin {
   history: Reading[];
 }
 
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  type: 'warning' | 'info' | 'success';
+  binId?: string;
+}
+
 export interface UserSettings {
   darkMode: boolean;
   unit: 'cm' | 'in';
   notificationsEnabled: boolean;
+  fullThreshold: number; // e.g., 80
+  emptyThreshold: number; // e.g., 20
 }

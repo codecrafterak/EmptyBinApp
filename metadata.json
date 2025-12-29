@@ -1,0 +1,5 @@
+{
+  "name": "EmptyBin",
+  "description": "IoT Dashboard for monitoring waste bin levels with real-time analytics, hardware documentation, and AI-powered collection insights.",
+  "requestFramePermissions": []
+}
